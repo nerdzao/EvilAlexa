@@ -36,7 +36,7 @@
       vm.ativo = false;
       // Request the ip for user
       // var ip = prompt("IP da máquina zumbi");
-      var ip = '177.14.125.135';
+      var ip = '177.15.165.47';
       var porta = '12345';
       if (!ip) return;
       vm.connection = new WebSocket('ws://' + ip + ':' + porta);
@@ -65,7 +65,7 @@
   <ion-pane>
     <ion-header-bar class="bar bar-header bar-assertive">
       <h1 class="title">Desktop Remote Control - Status: {{vm.ativo? "Ativo": "Inativo" }}
-          
+
        </span>
       </h1>
     </ion-header-bar>
@@ -75,9 +75,9 @@
       <br>
       <ul class="list">
         <li class="item item-toggle">
-          Trocar Papel de Parede
+          Screen
           <label class="toggle toggle-assertive">
-            <input type="checkbox" ng-click="vm.enviarComando('wallpaper')">
+            <input type="checkbox" ng-click="vm.enviarComando('screen')">
             <div class="track">
               <div class="handle"></div>
             </div>

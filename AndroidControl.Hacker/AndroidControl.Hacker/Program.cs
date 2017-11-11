@@ -1,104 +1,107 @@
-﻿using Fleck;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using System.Threading;
+using System.Diagnostics;
+using System.Windows.Forms;
+using Fleck;
+using System.Collections.Generic;
 
 namespace AndroidControl.Hacker
 {
 
-    class Program
-    {
-        static void Main(string[] args)
-        {
+	class Program
+	{
+		protected static IMongoClient _client;
+		protected static IMongoDatabase _database;
 
-            var meuIp = GetLocalIPAddress();
-            Console.WriteLine("My IP: " + meuIp);
-            var _servidor = new WebSocketServer("ws://" + meuIp + ":12345");
-            var _conexoes = new List<IWebSocketConnection>();
-            var swap = false;
-            var cursor = false;
-            var barra = 1;
-            _servidor.Start((conexao) =>
-            {
-                conexao.OnOpen = () =>
-                {
-                    _conexoes.Add(conexao);
-                    Console.WriteLine("User connected: " + conexao.ConnectionInfo.ClientIpAddress);
+		public static object SendKeys { get; private set; }
 
-                };
+		static void Insert(string ip)
+		{
+			_client = new MongoClient("mongodb://campus:1234@ds243285.mlab.com:43285/campusdemo");
+			_database = _client.GetDatabase("campusdemo");
 
-                conexao.OnClose = () =>
-                {
-                    _conexoes.Remove(conexao);
-                };
+			var document = new BsonDocument { { "ip", ip } };
 
-                conexao.OnMessage = (mensagem) =>
-                {
-                    mensagem = mensagem.ToLower();
+			var collection = _database.GetCollection<BsonDocument>("Ips");
+			var filter = Builders<BsonDocument>.Filter.Exists("ip");
+			var result = collection.DeleteMany(filter);
+			collection.InsertOne(document);
 
-                    switch (mensagem)
-                    {
-                        case "hide":
-                            {
-                                barra = barra == 0 ? 1 : 0;
-                                Helper.TaskBar(barra);
-                                break;
-                            }
-                        case "swap":
-                            {
-                                swap = !swap;
-                                Helper.SwapMouse(swap);
-                                break;
-                            }
-                        case "movecursor":
-                            {
-                                 
-                                Helper.MouseCursor();
-                                break;
-                            }
-                        case "opencddriver":
-                            {
+			Console.WriteLine("IP Updated with success!");
+		}
 
-                                Helper.OpenCdDriver();
-                                break;
-                            }
-                        case "lock":
-                            {
+		static void Main(string[] args)
 
-                                Helper.Lock();
-                                break;
-                            }
+		{
+			var meuIp = GetLocalIPAddress();
+			Console.WriteLine("My IP: " + meuIp);
+			Insert(meuIp + ":12345");
+			var _servidor = new WebSocketServer("ws://" + meuIp + ":12345");
+			var _conexoes = new List<IWebSocketConnection>();
+			_servidor.Start((conexao) =>
+			{
+				conexao.OnOpen = () =>
+				{
+					_conexoes.Add(conexao);
+					Console.WriteLine("User connected: " + conexao.ConnectionInfo.ClientIpAddress);
 
-                        case "wallpaper":
-                            {
-                                Helper.SetWallpaper(@"C:\Users\erick.silva\Downloads\vampeta.jpg");
-                                break;
+				};
 
-                            }
-                    }
+				conexao.OnClose = () =>
+				{
+					_conexoes.Remove(conexao);
+				};
 
-                };
-            });
-
-            Console.ReadKey();
-        }
+				conexao.OnMessage = (mensagem) =>
+				{
+					mensagem = mensagem.ToLower();
 
 
-        public static string GetLocalIPAddress()
-        {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    return ip.ToString();
-                }
-            }
-            throw new Exception("Local IP Address Not Found!");
-        }
-    }
+					switch (mensagem)
+					{
+
+						case "screen":
+							{
+								for (int i = 0; i < 60; i++)
+								{
+									Thread.Sleep(200);
+									Screen.ChangeScreen();
+
+								}
+								Thread.Sleep(2000);
+								Process.Start("notepad");
+								Thread.Sleep(2000);
+
+								System.Windows.Forms.SendKeys.SendWait(" Olha pra trás!{ENTER} Invadi sua talk hehehe{ENTER} by: Erick Wendel");
+
+
+								break;
+							}
+					}
+
+				};
+			});
+
+			Console.ReadKey();
+		}
+
+	
+
+	public static string GetLocalIPAddress()
+		{
+			var host = Dns.GetHostEntry(Dns.GetHostName());
+			foreach (var ip in host.AddressList)
+			{
+				if (ip.AddressFamily == AddressFamily.InterNetwork)
+				{
+					return ip.ToString();
+				}
+			}
+			throw new Exception("Local IP Address Not Found!");
+		}
+	}
 }
